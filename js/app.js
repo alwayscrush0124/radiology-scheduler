@@ -1,8 +1,16 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // 初始化年月選擇器
   initMonthSelector();
 
-  // 載入資料
+  // 嘗試從雲端載入資料（成功則覆蓋 localStorage）
+  let cloudLoaded = false;
+  try {
+    cloudLoaded = await loadFromCloud();
+  } catch (e) {
+    console.warn('[Cloud] 載入失敗，使用本地資料', e);
+  }
+
+  // 載入資料（從 localStorage，可能剛被雲端資料覆蓋）
   loadSchedule();
   loadModule();
 
@@ -44,9 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.id === 'oncall-modal') e.target.classList.add('hidden');
   });
 
-  // 設定副標題
-  document.querySelector('.subtitle').textContent =
-    `新竹台大分院生醫院竹北院區 · ${currentYear}年${currentMonth}月`;
+  // 設定副標題（保留 cloud-status span）
+  updateSubtitle();
 
   // 渲染
   refreshAll();
@@ -85,9 +92,13 @@ function initMonthSelector() {
   });
 }
 
+function updateSubtitle() {
+  const span = document.querySelector('.subtitle > span:first-child');
+  if (span) span.textContent = `新竹台大分院生醫院竹北院區 · ${currentYear}年${currentMonth}月`;
+}
+
 function onMonthChange() {
-  document.querySelector('.subtitle').textContent =
-    `新竹台大分院生醫院竹北院區 · ${currentYear}年${currentMonth}月`;
+  updateSubtitle();
   loadSchedule();
   refreshAll();
   renderModuleView();

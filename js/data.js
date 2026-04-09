@@ -209,6 +209,7 @@ function getAnnualLeaveForDay(month, day, adYear) {
 
 function saveAnnualLeave() {
   localStorage.setItem('radiology_annual_leave', JSON.stringify(annualLeaveData));
+  if (typeof scheduleCloudSync === 'function') scheduleCloudSync();
 }
 
 function loadAnnualLeave() {
@@ -241,6 +242,7 @@ function setLeaveType(day, pos, type) {
     delete allLeaveTypes[key][`${day}-${pos}`];
   }
   localStorage.setItem('radiology_leave_types', JSON.stringify(allLeaveTypes));
+  if (typeof scheduleCloudSync === 'function') scheduleCloudSync();
 }
 
 function loadLeaveTypes() {
@@ -260,6 +262,7 @@ function getSavedFixedSlots() {
 
 function saveFixedSlots(slots) {
   localStorage.setItem('radiology_fixed_slots', JSON.stringify(slots));
+  if (typeof scheduleCloudSync === 'function') scheduleCloudSync();
 }
 
 function getFixedPositions() {
@@ -281,6 +284,7 @@ function getOncallConfig() {
 
 function saveOncallConfig(config) {
   localStorage.setItem('radiology_oncall_config', JSON.stringify(config));
+  if (typeof scheduleCloudSync === 'function') scheduleCloudSync();
 }
 
 // 取得某天 ONCALL 預設人員（從班表位置帶入）
@@ -318,6 +322,7 @@ function saveSchedule() {
   localStorage.setItem('radiology_edits', JSON.stringify(
     Object.fromEntries(Object.entries(allEdits).map(([k, v]) => [k, [...v]]))
   ));
+  if (typeof scheduleCloudSync === 'function') scheduleCloudSync();
 }
 
 function loadSchedule() {

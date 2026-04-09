@@ -68,6 +68,7 @@ function loadModule() {
 
 function saveModule() {
   localStorage.setItem('radiology_module', JSON.stringify(currentModule));
+  if (typeof scheduleCloudSync === 'function') scheduleCloudSync();
 }
 
 function resetModule() {
@@ -377,6 +378,7 @@ function getSavedRoster() {
 
 function saveRoster(roster) {
   localStorage.setItem('radiology_roster', JSON.stringify(roster));
+  if (typeof scheduleCloudSync === 'function') scheduleCloudSync();
 }
 
 function getSavedStartDate() {

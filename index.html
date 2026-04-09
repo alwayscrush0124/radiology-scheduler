@@ -17,7 +17,10 @@
         <span>月</span>
       </div>
     </div>
-    <div class="subtitle">新竹台大分院生醫院竹北院區</div>
+    <div class="subtitle">
+      <span>新竹台大分院生醫院竹北院區</span>
+      <span id="cloud-status" style="margin-left:16px;font-size:12px;color:#a0aec0;"></span>
+    </div>
     <nav id="tabs">
       <button class="tab active" data-tab="weekly">週班表</button>
       <button class="tab" data-tab="annual-leave">年度預假表</button>
@@ -100,6 +103,7 @@
   </div>
 
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="js/cloud.js"></script>
   <script src="js/data.js"></script>
   <script src="js/module.js"></script>
   <script src="js/weeklyView.js"></script>
