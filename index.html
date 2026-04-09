@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>放射科班表系統</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <h1>影像醫學部 排班系統</h1>
+      <div class="month-selector">
+        <select id="sel-year"></select>
+        <span>年</span>
+        <select id="sel-month"></select>
+        <span>月</span>
+      </div>
+    </div>
+    <div class="subtitle">新竹台大分院生醫院竹北院區</div>
+    <nav id="tabs">
+      <button class="tab active" data-tab="weekly">週班表</button>
+      <button class="tab" data-tab="annual-leave">年度預假表</button>
+      <span class="tab-spacer"></span>
+      <button class="tab" data-tab="stats-parent">統計報表</button>
+      <button class="tab" data-tab="module">模組設定</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="weekly" class="tab-content active"></section>
+    <section id="annual-leave" class="tab-content"></section>
+    <section id="stats-parent" class="tab-content">
+      <div class="sub-tabs">
+        <button class="sub-tab active" data-subtab="horizontal">橫式</button>
+        <button class="sub-tab" data-subtab="upload">上傳 CSV</button>
+        <button class="sub-tab" data-subtab="report">夜班報表</button>
+      </div>
+      <div id="horizontal" class="sub-content active"></div>
+      <div id="upload" class="sub-content"></div>
+      <div id="report" class="sub-content">
+        <div class="report-tabs">
+          <button class="report-tab active" data-report="duty">值班表</button>
+          <button class="report-tab" data-report="stats">統計明細表</button>
+          <button class="report-tab" data-report="sign">簽名單</button>
+        </div>
+        <div id="report-duty" class="report-content active"></div>
+        <div id="report-stats" class="report-content"></div>
+        <div id="report-sign" class="report-content"></div>
+      </div>
+    </section>
+    <section id="module" class="tab-content"></section>
+  </main>
+
+  <!-- 編輯 Modal -->
+  <div id="edit-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">編輯班表</h3>
+        <button id="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="modal-info"></p>
+        <label>選擇人員：</label>
+        <select id="modal-select"></select>
+        <div id="modal-leave-type-wrap" style="display:none;margin-top:12px;">
+          <label>休假類型：</label>
+          <input type="text" id="modal-leave-type" placeholder="例：年假、補休、公假..." style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:14px;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="modal-clear" class="btn-danger">清除</button>
+        <button id="modal-save" class="btn-primary">確定</button>
+        <button id="modal-cancel">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONCALL 編輯 Modal -->
+  <div id="oncall-modal" class="modal hidden">
+    <div class="modal-content" style="width:400px;">
+      <div class="modal-header">
+        <h3 id="oncall-modal-title">編輯 ONCALL</h3>
+        <button id="oncall-modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="oncall-modal-info"></p>
+        <label>人員 1：</label>
+        <select id="oncall-select1" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:14px;margin-bottom:10px;"></select>
+        <label>人員 2：</label>
+        <select id="oncall-select2" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:14px;"></select>
+        <p style="font-size:12px;color:#888;margin-top:8px;">週六日通常需要兩人，平日通常一人（人員2選空即可）</p>
+      </div>
+      <div class="modal-footer">
+        <button id="oncall-modal-reset" class="btn-danger">還原預設</button>
+        <button id="oncall-modal-save" class="btn-primary">確定</button>
+        <button id="oncall-modal-cancel">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/module.js"></script>
+  <script src="js/weeklyView.js"></script>
+  <script src="js/horizontalView.js"></script>
+  <script src="js/uploadExport.js"></script>
+  <script src="js/reportView.js"></script>
+  <script src="js/annualLeave.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

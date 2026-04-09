@@ -1,0 +1,594 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Microsoft JhengHei', 'Segoe UI', Arial, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  font-size: 14px;
+}
+
+header {
+  background: #1a365d;
+  color: white;
+  padding: 16px 24px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 { font-size: 20px; font-weight: 600; }
+.subtitle { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+
+.month-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.month-selector select {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  background: rgba(255,255,255,0.9);
+  color: #1a365d;
+  font-weight: 600;
+}
+.month-selector span { opacity: 0.8; }
+
+nav#tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.tab {
+  padding: 8px 20px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.tab:hover { background: rgba(255,255,255,0.2); color: white; }
+.tab.active { background: #f0f2f5; color: #1a365d; }
+
+.tab-spacer { flex: 1; }
+
+/* 子分頁 */
+.sub-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.sub-tab {
+  padding: 7px 18px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.sub-tab:hover { background: #edf2f7; }
+.sub-tab.active {
+  background: #2d3748;
+  color: white;
+  border-color: #2d3748;
+}
+
+.sub-content { display: none; }
+.sub-content.active { display: block; }
+
+main {
+  padding: 20px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* 週班表 */
+.week-block {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.week-header {
+  background: #2d3748;
+  color: white;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.week-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.week-table th, .week-table td {
+  border: 1px solid #e2e8f0;
+  padding: 6px 4px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.week-table thead th {
+  background: #edf2f7;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.week-table .pos-col {
+  width: 90px;
+  text-align: left;
+  padding-left: 10px;
+  font-weight: 600;
+  background: #f7fafc;
+}
+
+.week-table td.editable {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.week-table td.editable:hover {
+  background: #bee3f8 !important;
+}
+
+/* 位置顏色 */
+.pos-小 { background: #fff3e0; }
+.pos-小二線 { background: #fff8e1; }
+.pos-大 { background: #f3e5f5; }
+.pos-13-21 { background: #fffde7; }
+
+.weekend-col { background: #fafafa; }
+.weekend-col.pos-小 { background: #ffecb3; }
+.weekend-col.pos-小二線 { background: #fff3e0; }
+.weekend-col.pos-大 { background: #e1bee7; }
+
+/* 休假列 */
+.leave-separator .leave-sep-cell {
+  height: 6px;
+  background: #cbd5e0;
+  border: none;
+  padding: 0;
+}
+
+.leave-row .leave-pos {
+  background: #e6fffa !important;
+  color: #234e52;
+}
+
+.leave-row .leave-cell {
+  background: #f0fff4;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.leave-row .leave-cell:hover {
+  background: #c6f6d5 !important;
+}
+
+.leave-warn {
+  color: #e53e3e;
+  font-size: 11px;
+  margin-left: 2px;
+  cursor: help;
+}
+
+/* 重複人員警告 */
+.dup-cell {
+  background: #fed7d7 !important;
+}
+.dup-warn {
+  color: #e53e3e;
+  font-size: 11px;
+  margin-left: 1px;
+  cursor: help;
+}
+
+/* 休假類型標籤 */
+.leave-type-label {
+  font-size: 10px;
+  color: #718096;
+  display: inline-block;
+}
+
+/* 固定列（血管） */
+.fixed-row .fixed-pos {
+  background: #ebf4ff !important;
+  color: #2b6cb0;
+}
+.fixed-row .fixed-cell {
+  background: #f0f9ff;
+}
+.fixed-row .fixed-cell:hover {
+  background: #bee3f8 !important;
+}
+
+/* ONCALL 列 */
+.oncall-row .oncall-pos {
+  background: #553c9a !important;
+  color: white;
+  font-weight: 700;
+}
+.oncall-row .oncall-cell {
+  background: #faf5ff;
+  font-size: 12px;
+}
+.oncall-row .oncall-cell:hover {
+  background: #e9d8fd !important;
+}
+
+/* 年度預假表鎖定 */
+.al-locked {
+  background: #edf2f7 !important;
+  cursor: not-allowed !important;
+}
+.al-locked:hover {
+  background: #edf2f7 !important;
+}
+.al-lock-icon {
+  font-size: 10px;
+  margin-left: 1px;
+  cursor: help;
+}
+
+/* 年度預假表 */
+.al-month-block {
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.al-table {
+  border-collapse: collapse;
+  font-size: 11px;
+  min-width: 100%;
+}
+
+.al-table td {
+  border: 1px solid #d1d5db;
+  padding: 3px 5px;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 46px;
+}
+
+.al-month-label {
+  background: #2d3748;
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 45px;
+  padding: 4px 6px !important;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.al-date {
+  background: #f7fafc;
+  font-size: 10px;
+  color: #4a5568;
+  font-weight: 600;
+}
+
+.al-dow {
+  background: #edf2f7;
+  font-size: 10px;
+  color: #718096;
+}
+
+.al-weekend {
+  background: #fff5f5 !important;
+  color: #e53e3e;
+}
+
+.al-cell {
+  background: white;
+  min-height: 28px;
+  height: 28px;
+  font-size: 12px;
+  color: #2d3748;
+}
+
+.al-editable {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.al-editable:hover {
+  background: #bee3f8 !important;
+}
+
+.al-weekend.al-cell {
+  background: #fff5f5 !important;
+}
+.al-weekend.al-editable:hover {
+  background: #fed7d7 !important;
+}
+
+/* 橫式 */
+.h-table-wrap {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.h-table {
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 100%;
+}
+
+.h-table th, .h-table td {
+  border: 1px solid #e2e8f0;
+  padding: 4px 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.h-table thead th {
+  background: #edf2f7;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+
+.h-table .row-label {
+  text-align: left;
+  padding-left: 8px;
+  font-weight: 600;
+  background: #f7fafc;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 80px;
+}
+
+.h-table td.weekend { background: #f5f5f5; }
+.h-table thead th.weekend { background: #e8eaed; }
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 16px 0 8px;
+  color: #2d3748;
+}
+
+/* 上傳 CSV */
+.upload-table {
+  border-collapse: collapse;
+  font-size: 12px;
+  width: 100%;
+}
+
+.upload-table th, .upload-table td {
+  border: 1px solid #e2e8f0;
+  padding: 4px 6px;
+  text-align: center;
+}
+
+.upload-table thead th {
+  background: #edf2f7;
+  font-weight: 600;
+}
+
+.upload-table .code-0 { color: #999; }
+.upload-table .code-1 { color: #2b6cb0; }
+.upload-table .code-221 { color: #c05621; }
+.upload-table .code-262 { color: #6b21a8; font-weight: 600; }
+.upload-table .code-273 { color: #b7791f; }
+.upload-table .code-278 { color: #c53030; font-weight: 600; }
+
+.btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 8px 4px;
+}
+.btn-primary { background: #3182ce; color: white; }
+.btn-primary:hover { background: #2b6cb0; }
+.btn-danger { background: #e53e3e; color: white; }
+.btn-danger:hover { background: #c53030; }
+.btn-secondary { background: #edf2f7; color: #4a5568; }
+.btn-secondary:hover { background: #e2e8f0; }
+
+.toolbar {
+  margin-bottom: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 報表 */
+.report-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.report-tab {
+  padding: 6px 16px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.report-tab.active {
+  background: #3182ce;
+  color: white;
+  border-color: #3182ce;
+}
+
+.report-content { display: none; }
+.report-content.active { display: block; }
+
+/* 報表表格 - 完全仿照 11503夜點寄.xlsx 格式 */
+.report-wrap {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 20px;
+}
+
+.report-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+  background: white;
+}
+
+.report-table th, .report-table td {
+  border: 1px solid #000;
+  padding: 5px 6px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.report-table thead th {
+  background: white;
+  font-weight: normal;
+  font-size: 11px;
+}
+
+.report-title-cell {
+  border: none !important;
+  font-size: 12px;
+  text-align: center;
+  padding: 4px 0;
+}
+
+.report-title-main {
+  font-size: 13px;
+  font-weight: 600;
+  padding-bottom: 8px;
+}
+
+.report-table .num-col { text-align: center; }
+
+.report-table .total-row td {
+  font-weight: 600;
+  border-top: 2px solid #000;
+}
+
+/* 值班表特殊樣式 */
+.duty-table td { font-size: 12px; }
+.duty-table td:first-child { width: 35px; font-size: 12px; }
+.duty-table th { font-size: 11px; }
+
+/* 簽名欄 */
+.sign-cell { min-width: 80px; height: 36px; }
+
+.report-footer {
+  margin-top: 16px;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.report-signature {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+  font-size: 13px;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal.hidden { display: none; }
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.modal-header h3 { font-size: 16px; }
+.modal-header button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+}
+
+.modal-body { padding: 20px; }
+.modal-body label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
+.modal-body select { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
+.modal-body p { margin-bottom: 12px; font-size: 13px; color: #666; }
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid #e2e8f0;
+}
+.modal-footer button {
+  padding: 6px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  background: white;
+}
+.modal-footer .btn-primary { background: #3182ce; color: white; border-color: #3182ce; }
+.modal-footer .btn-danger { background: #e53e3e; color: white; border-color: #e53e3e; }
+
+/* 列印 */
+@media print {
+  header, nav, .toolbar, .no-print, .report-tabs, .tab, .btn, .modal, .month-selector { display: none !important; }
+  main { padding: 0; }
+  body { background: white; font-size: 11px; }
+  .tab-content { display: none !important; }
+  .tab-content.printing { display: block !important; }
+  .sub-content { display: none !important; }
+  .sub-content.printing { display: block !important; }
+  .report-content { display: none !important; }
+  .report-content.printing { display: block !important; }
+  .sub-tabs { display: none !important; }
+  .week-block { box-shadow: none; break-inside: avoid; margin-bottom: 10px; }
+  .report-wrap { box-shadow: none; padding: 0; }
+  .report-table th, .report-table td { padding: 4px 5px; font-size: 11px; }
+  .h-table-wrap { box-shadow: none; overflow: visible; }
+}
