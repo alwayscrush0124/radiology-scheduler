@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "radiology-scheduler",
+      "runtimeExecutable": "powershell.exe",
+      "runtimeArgs": ["-ExecutionPolicy", "Bypass", "-File", "serve.ps1"],
+      "port": 8080
+    }
+  ]
+}

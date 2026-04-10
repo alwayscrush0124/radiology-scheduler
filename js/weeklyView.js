@@ -1,3 +1,20 @@
+// 取得其他月份的班表資料（用於跨月週顯示）
+function getOtherMonthScheduleData(otherMonth) {
+  // 計算該月的西元年
+  let adYear = getADYear();
+  if (otherMonth > currentMonth && otherMonth === 12 && currentMonth === 1) {
+    adYear -= 1; // 一月看上個月十二月 → 去年
+  } else if (otherMonth < currentMonth && otherMonth === 1 && currentMonth === 12) {
+    adYear += 1; // 十二月看下個月一月 → 明年
+  } else if (otherMonth < currentMonth) {
+    // 可能是上個月，同年
+  } else if (otherMonth > currentMonth) {
+    // 可能是下個月，同年
+  }
+  const key = `${adYear}-${String(otherMonth).padStart(2, '0')}`;
+  return allSchedules[key] || [];
+}
+
 function renderWeeklyView() {
   const container = document.getElementById('weekly');
   container.innerHTML = '';
@@ -67,14 +84,18 @@ function renderWeeklyView() {
           if (person && dayDuplicates[dayInfo.day] && dayDuplicates[dayInfo.day].has(person)) {
             dupWarn = `<span class="dup-warn" title="${person} 同一天出現在多個位置">⚠</span>`;
           }
+        } else {
+          const otherData = getOtherMonthScheduleData(dayInfo.month);
+          const dayData = otherData[dayInfo.day - 1];
+          person = (dayData && dayData[pos]) || '';
         }
         const edited = !isOtherMonth && isEdited(dayInfo.day, pos);
         const boldStyle = edited ? 'font-weight:700;' : '';
-        const otherStyle = isOtherMonth ? 'color:#ccc;background:#f9f9f9;' : '';
+        const otherStyle = isOtherMonth ? 'color:#aaa;background:#f9f9f9;' : '';
         const dupClass = (person && !isOtherMonth && dayDuplicates[dayInfo.day]?.has(person)) ? 'dup-cell' : '';
         const cellClass = `${posClass} ${isWe ? 'weekend-col' : ''} ${isOtherMonth ? '' : 'editable'} ${dupClass}`;
         if (isOtherMonth) {
-          html += `<td class="${cellClass}" style="${otherStyle}"></td>`;
+          html += `<td class="${cellClass}" style="${otherStyle}">${person}</td>`;
         } else {
           html += `<td class="${cellClass}" style="${boldStyle}" data-day="${dayInfo.day}" data-pos="${pos}">${person}${dupWarn}</td>`;
         }
@@ -116,17 +137,21 @@ function renderWeeklyView() {
               typeHtml = `<br><span class="leave-type-label">${lType}</span>`;
             }
           }
+        } else {
+          const otherData = getOtherMonthScheduleData(dayInfo.month);
+          const dayData = otherData[dayInfo.day - 1];
+          person = (dayData && dayData[pos]) || '';
         }
         const edited = !isOtherMonth && isEdited(dayInfo.day, pos);
         const locked = !isOtherMonth && isFromAnnualLeave(dayInfo.day, pos);
         const boldStyle = edited ? 'font-weight:700;' : '';
-        const otherStyle = isOtherMonth ? 'color:#ccc;background:#f9f9f9;' : '';
+        const otherStyle = isOtherMonth ? 'color:#aaa;background:#f9f9f9;' : '';
         const lockedClass = locked ? 'al-locked' : '';
         const editableClass = (isOtherMonth || locked) ? '' : 'editable';
         const cellClass = `leave-cell ${isWe ? 'weekend-col' : ''} ${editableClass} ${lockedClass}`;
         const lockIcon = locked ? '<span class="al-lock-icon" title="由年度預假表填入，不可修改">🔒</span>' : '';
         if (isOtherMonth) {
-          html += `<td class="${cellClass}" style="${otherStyle}"></td>`;
+          html += `<td class="${cellClass}" style="${otherStyle}">${person}</td>`;
         } else {
           html += `<td class="${cellClass}" style="${boldStyle}" data-day="${dayInfo.day}" data-pos="${pos}" data-is-leave="1">${person}${typeHtml}${warnHtml}${lockIcon}</td>`;
         }
@@ -153,14 +178,19 @@ function renderWeeklyView() {
         if (!isOtherMonth) {
           people = getOncallForDay(dayInfo.day, scheduleData);
           isManual = scheduleData[dayInfo.day - 1]?.['ONCALL'] !== undefined;
+        } else {
+          const otherData = getOtherMonthScheduleData(dayInfo.month);
+          if (otherData.length > 0) {
+            people = getOncallForDay(dayInfo.day, otherData);
+          }
         }
         const display = people.join(', ');
         const edited = !isOtherMonth && isManual;
         const boldStyle = edited ? 'font-weight:700;' : '';
-        const otherStyle = isOtherMonth ? 'color:#ccc;background:#f9f9f9;' : '';
+        const otherStyle = isOtherMonth ? 'color:#aaa;background:#f9f9f9;' : '';
         const cellClass = `oncall-cell ${isWe ? 'weekend-col' : ''} ${isOtherMonth ? '' : 'editable'}`;
         if (isOtherMonth) {
-          oncallHtml += `<td class="${cellClass}" style="${otherStyle}"></td>`;
+          oncallHtml += `<td class="${cellClass}" style="${otherStyle}">${display}</td>`;
         } else {
           oncallHtml += `<td class="${cellClass}" style="${boldStyle}" data-day="${dayInfo.day}" data-pos="ONCALL" data-is-oncall="1">${display}</td>`;
         }
@@ -189,13 +219,16 @@ function renderWeeklyView() {
         let person = '';
         if (!isOtherMonth) {
           person = (scheduleData[dayInfo.day - 1] && scheduleData[dayInfo.day - 1][slot.name]) || '';
+        } else {
+          const otherData = getOtherMonthScheduleData(dayInfo.month);
+          person = (otherData[dayInfo.day - 1] && otherData[dayInfo.day - 1][slot.name]) || '';
         }
         const edited = !isOtherMonth && isEdited(dayInfo.day, slot.name);
         const boldStyle = edited ? 'font-weight:700;' : '';
-        const otherStyle = isOtherMonth ? 'color:#ccc;background:#f9f9f9;' : '';
+        const otherStyle = isOtherMonth ? 'color:#aaa;background:#f9f9f9;' : '';
         const cellClass = `fixed-cell ${isWe ? 'weekend-col' : ''} ${isOtherMonth ? '' : 'editable'}`;
         if (isOtherMonth) {
-          html += `<td class="${cellClass}" style="${otherStyle}"></td>`;
+          html += `<td class="${cellClass}" style="${otherStyle}">${person}</td>`;
         } else {
           html += `<td class="${cellClass}" style="${boldStyle}" data-day="${dayInfo.day}" data-pos="${slot.name}" data-is-fixed="1">${person}</td>`;
         }

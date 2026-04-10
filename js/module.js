@@ -10,8 +10,8 @@ const DEFAULT_MODULE = {
     { name: 'ER',        days: [3,3,3,3,3,null,null],    color: '' },
     { name: 'Portable',  days: [4,4,9,9,4,4,4],          color: '' },
     { name: 'OPD',       days: [5,9,5,5,5,null,null],    color: '' },
-    { name: 'MA/骨密',   days: [6,6,6,6,6,null,null],    color: '' },
-    { name: '2rd X光',   days: [7,7,7,7,7,null,null],    color: '' },
+    { name: 'MA/骨密',   days: [7,7,7,7,7,null,null],    color: '' },
+    { name: '2rd X光',   days: [6,6,6,6,6,null,null],    color: '' },
     { name: 'ER CT',     days: [8,8,8,8,8,5,13],         color: '' },
     { name: 'P小',       days: [10,10,10,10,9,9,10],     color: '#e53e3e' },
     { name: 'CT小',      days: [11,11,11,12,12,12,12],   color: '#e53e3e' },
@@ -101,7 +101,7 @@ function generateWeekFromModule(roster, weekOffset) {
       if (mod.fixedSlots[num]) {
         result[dayIdx][schedPos] = mod.fixedSlots[num];
       } else {
-        const rosterIdx = (num - 1 + weekOffset) % mod.cycleLength;
+        const rosterIdx = ((num - 1 - weekOffset) % mod.cycleLength + mod.cycleLength) % mod.cycleLength;
         result[dayIdx][schedPos] = roster[rosterIdx];
       }
     });
@@ -125,6 +125,7 @@ function renderModuleView() {
   toolbar.className = 'toolbar';
   toolbar.innerHTML = `
     <button class="btn btn-primary" id="module-apply">套用模組到當月班表</button>
+    <button class="btn btn-danger" id="module-clear-month">清空當月班表</button>
     <button class="btn btn-secondary" id="module-reset">重置為預設</button>
     <button class="btn btn-primary" id="module-export" style="margin-left:auto;">匯出備份</button>
     <button class="btn btn-secondary" id="module-import">匯入備份</button>
@@ -239,6 +240,10 @@ function renderModuleView() {
       </div>
     </div>
     <p style="font-size:13px;color:#666;margin-top:6px;">套用時只會填入起始～結束日期區間內的班表，區間外的現有資料不受影響。</p>
+    <div style="margin-top:10px;">
+      <button class="btn btn-primary" id="module-apply-range">套用模組到指定範圍</button>
+      <span style="font-size:13px;color:#666;margin-left:8px;">依據上方起始～結束日期，一次套用所有月份</span>
+    </div>
   `;
   container.appendChild(startSection);
 
@@ -373,7 +378,7 @@ function getSavedRoster() {
   const saved = localStorage.getItem('radiology_roster');
   if (saved) return JSON.parse(saved);
   // 預設: 從 RUN CYCLE W1 的順序
-  return ['倫','堯','璇','俊','崴','芳','韋','宏','潔','琳','婷','魁','岑','娟','綾'];
+  return ['倫','綾','娟','岑','魁','婷','琳','潔','宏','韋','芳','崴','俊','璇','堯'];
 }
 
 function saveRoster(roster) {
@@ -459,6 +464,25 @@ function bindModuleEvents(mod) {
   document.getElementById('module-apply').addEventListener('click', () => {
     if (!confirm('將模組套用到當月班表？現有班表會被覆蓋。')) return;
     applyModuleToSchedule();
+    refreshAll();
+  });
+
+  // 套用到指定範圍（跨月）
+  document.getElementById('module-apply-range').addEventListener('click', () => {
+    const sd = getSavedStartDate();
+    const ed = getSavedEndDate();
+    if (!confirm(`將模組套用到 ${sd} ~ ${ed} 的所有月份班表？現有班表會被覆蓋。`)) return;
+    applyModuleToRange(true);
+    refreshAll();
+  });
+
+  // 清空當月班表
+  document.getElementById('module-clear-month').addEventListener('click', () => {
+    const key = getScheduleKey();
+    if (!confirm(`確定清空 ${currentYear}年${currentMonth}月 的所有班表資料？此操作無法復原。`)) return;
+    allSchedules[key] = buildEmptyMonth();
+    allEdits[key] = new Set();
+    saveSchedule();
     refreshAll();
   });
 
@@ -664,51 +688,80 @@ function bindModuleEvents(mod) {
   });
 }
 
+// 將 "YYYY-MM-DD" 字串解析為本地時間午夜（避免 UTC 偏移造成日期錯誤）
+function parseLocalDate(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
 // 套用模組到當月班表
 function applyModuleToSchedule() {
+  applyModuleToRange(false);
+}
+
+// 套用模組到指定日期範圍（跨月）
+function applyModuleToRange(isFullRange) {
   const roster = getSavedRoster();
-  const daysInMonth = getDaysInMonth();
-  const startDate = new Date(getSavedStartDate());
-  const endDate = new Date(getSavedEndDate());
+  const startDate = parseLocalDate(getSavedStartDate());
+  const endDate = parseLocalDate(getSavedEndDate());
   const startOffset = getSavedStartOffset() - 1; // 轉為 0-based
   const mod = loadModule();
 
-  // 預先算出起始日期所在那週的週一
+  // 預先算出「輪轉第0週」的週一
   const startDow = startDate.getDay();
-  const startMondayOffset = startDow === 0 ? -6 : 1 - startDow;
+  const startMondayOffset = startDow === 0 ? 1 : 1 - startDow;
   const startMonday = new Date(startDate);
   startMonday.setDate(startMonday.getDate() + startMondayOffset);
 
-  // 取得現有班表（區間外保留）
-  const key = getScheduleKey();
-  const schedule = allSchedules[key] ? [...allSchedules[key]] : buildEmptyMonth();
-  // 補足長度
-  while (schedule.length < daysInMonth) schedule.push({});
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const thisDate = new Date(getADYear(), currentMonth - 1, d);
-
-    // 只填入區間內的日期
-    if (thisDate < startDate || thisDate > endDate) continue;
-
-    const dow = getDow(d);
-    const dayIdx = dow === 0 ? 6 : dow - 1;
-
-    // 找到這天所在那週的週一
-    const thisDow = thisDate.getDay();
-    const mondayOff = thisDow === 0 ? -6 : 1 - thisDow;
-    const thisMonday = new Date(thisDate);
-    thisMonday.setDate(thisMonday.getDate() + mondayOff);
-
-    // 週數差 + 起始人員偏移
-    const weekDiff = Math.round((thisMonday - startMonday) / (7 * 86400000));
-    const weekOffset = (((weekDiff + startOffset) % mod.cycleLength) + mod.cycleLength) % mod.cycleLength;
-
-    const weekData = generateWeekFromModule(roster, weekOffset);
-    schedule[d - 1] = weekData[dayIdx] || {};
+  // 決定要處理的月份範圍
+  let monthsToProcess;
+  if (isFullRange) {
+    // 跨月：收集 startDate 到 endDate 之間所有月份
+    monthsToProcess = [];
+    let y = startDate.getFullYear();
+    let m = startDate.getMonth(); // 0-based
+    const endY = endDate.getFullYear();
+    const endM = endDate.getMonth();
+    while (y < endY || (y === endY && m <= endM)) {
+      monthsToProcess.push({ adYear: y, month: m + 1 }); // month 1-based
+      m++;
+      if (m > 11) { m = 0; y++; }
+    }
+  } else {
+    // 只處理當前月份
+    monthsToProcess = [{ adYear: getADYear(), month: currentMonth }];
   }
 
-  allSchedules[key] = schedule;
-  if (!allEdits[key]) allEdits[key] = new Set();
+  // 對每個月份套用模組
+  monthsToProcess.forEach(({ adYear, month }) => {
+    const key = `${adYear}-${String(month).padStart(2, '0')}`;
+    const dim = new Date(adYear, month, 0).getDate(); // 該月天數
+    const schedule = allSchedules[key] ? [...allSchedules[key]] : Array.from({ length: dim }, () => ({}));
+    while (schedule.length < dim) schedule.push({});
+
+    for (let d = 1; d <= dim; d++) {
+      const thisDate = new Date(adYear, month - 1, d);
+      if (thisDate < startDate || thisDate > endDate) continue;
+
+      const dow = thisDate.getDay();
+      const dayIdx = dow === 0 ? 6 : dow - 1;
+
+      // 找到這天所在那週的週一
+      const mondayOff = dow === 0 ? -6 : 1 - dow;
+      const thisMonday = new Date(thisDate);
+      thisMonday.setDate(thisMonday.getDate() + mondayOff);
+
+      // 週數差 + 起始人員偏移
+      const weekDiff = Math.round((thisMonday - startMonday) / (7 * 86400000));
+      const weekOffset = (((weekDiff + startOffset) % mod.cycleLength) + mod.cycleLength) % mod.cycleLength;
+
+      const weekData = generateWeekFromModule(roster, weekOffset);
+      schedule[d - 1] = weekData[dayIdx] || {};
+    }
+
+    allSchedules[key] = schedule;
+    if (!allEdits[key]) allEdits[key] = new Set();
+  });
+
   saveSchedule();
 }
